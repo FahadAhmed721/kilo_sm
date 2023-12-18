@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "98949199772",
+    "firebase_url": "https://kiloism-63680-default-rtdb.firebaseio.com",
+    "project_id": "kiloism-63680",
+    "storage_bucket": "kiloism-63680.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:98949199772:android:cf0cd54c4a9b3ca8303a59",
+        "android_client_info": {
+          "package_name": "com.example.kiloi_sm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGr0h7YhdxCxlMFE0X2ub5UdHzuPqjsJ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
