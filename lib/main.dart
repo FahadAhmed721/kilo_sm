@@ -1,18 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:kiloi_sm/global.dart';
 import 'package:kiloi_sm/providers/auth_provider.dart';
 import 'package:kiloi_sm/providers/chat_provider.dart';
 import 'package:kiloi_sm/providers/media_provider.dart';
 import 'package:kiloi_sm/providers/products_provider.dart';
-import 'package:kiloi_sm/repos/user/user.dart';
+//import 'package:kiloi_sm/repos/user/user.dart';
 import 'package:kiloi_sm/routes/routes.dart';
 import 'package:kiloi_sm/screens/auth/sign_in.dart';
-import 'package:kiloi_sm/screens/auth/splash_screen.dart';
+//import 'package:kiloi_sm/screens/auth/splash_screen.dart';
 import 'package:kiloi_sm/screens/home/home.dart';
 import 'package:kiloi_sm/theme/theme.dart';
-import 'package:kiloi_sm/utils/app_colors.dart';
+//import 'package:kiloi_sm/utils/app_colors.dart';
 import 'package:provider/provider.dart';
 
 kPrint(String data) {
@@ -22,7 +24,11 @@ kPrint(String data) {
 }
 
 void main() async {
+
   await Global.iniit();
+  Stripe.publishableKey =
+      "pk_live_51OJ0YCLawvH1yXDfipHsni0lOUR5Kld0dTIwP8SmTKlNi0gS299fj1gpxFwwUtKjGlBHiLiNB3maI6x41yzsOcG400ctfGqPA4";
+  await dotenv.load(fileName: "assets/.env");
   runApp(const MyApp());
 }
 

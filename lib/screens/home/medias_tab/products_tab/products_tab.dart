@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:kiloi_sm/components/custom_widgets.dart';
 import 'package:kiloi_sm/main.dart';
@@ -13,7 +15,14 @@ import 'package:kiloi_sm/repos/products/products.dart';
 import 'package:kiloi_sm/screens/home/medias_tab/upload_media_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:http/http.dart' as http;
 
+// String client_secret =
+//     "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";
+
+//import 'package:stripe_sdk/stripe_sdk.dart';
 class ProductTab extends StatefulWidget {
   const ProductTab({super.key});
 
@@ -25,7 +34,8 @@ class _ProductTabState extends State<ProductTab> {
   late ProductsProvider productsProvider;
   late AuthProvider authProvider;
   late Stream<List<Product>> stream;
-
+  Map<String, dynamic>? paymentIntent;
+  String toPayPrice = "";
   @override
   void initState() {
     productsProvider = Provider.of<ProductsProvider>(context, listen: false);
@@ -48,6 +58,102 @@ class _ProductTabState extends State<ProductTab> {
     // mediasProvider.disposeMediaStream();
 
     super.dispose();
+  }
+
+  Future<void> makePayment(String amountToPay) async {
+    print("make payment called");
+    try {
+      //STEP 1: Create Payment Intent
+      print("Creating PaymentIntent");
+      paymentIntent = await createPaymentIntent(amountToPay, 'USD');
+
+      //STEP 2: Initialize Payment Sheet
+      print("initializing Intent");
+      await Stripe.instance
+          .initPaymentSheet(
+              paymentSheetParameters: SetupPaymentSheetParameters(
+                  paymentIntentClientSecret: paymentIntent![
+                      'client_secret'], //Gotten from payment intent
+                  style: ThemeMode.light,
+                  merchantDisplayName: 'Ikay'))
+          .then((value) {});
+
+      //STEP 3: Display Payment sheet
+      displayPaymentSheet();
+    } catch (err) {
+      throw Exception(err);
+    }
+  }
+
+  displayPaymentSheet() async {
+    print("displaying patment sheet");
+    try {
+      await Stripe.instance.presentPaymentSheet().then((value) {
+        showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: 100.0,
+                      ),
+                      SizedBox(height: 10.0),
+                      Text("Payment Successful!"),
+                    ],
+                  ),
+                ));
+
+        paymentIntent = null;
+      }).onError((error, stackTrace) {
+        throw Exception(error);
+      });
+    } on StripeException catch (e) {
+      print('Error is:---> $e');
+      AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: const [
+                Icon(
+                  Icons.cancel,
+                  color: Colors.red,
+                ),
+                Text("Payment Failed"),
+              ],
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+  createPaymentIntent(String amount, String currency) async {
+    try {
+      //Request body
+      Map<String, dynamic> body = {
+        'amount': (amount),
+        'currency': currency,
+      };
+
+      //Make post request to Stripe
+      var response = await http.post(
+        Uri.parse('https://api.stripe.com/v1/payment_intents'),
+        headers: {
+          'Authorization': 'Bearer ${dotenv.env['STRIPE_SECRET']}',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body,
+      );
+      return json.decode(response.body);
+    } catch (err) {
+      throw Exception(err.toString());
+    }
   }
 
   @override
@@ -77,19 +183,27 @@ class _ProductTabState extends State<ProductTab> {
                                 authNotifier.getUserContent.isAdmin!,
                                 index,
                                 productNotifier.productsList);
-
+                        toPayPrice = product?.price ?? " ";
                         return !authNotifier.getUserContent.isAdmin!
                             ? Container(
                                 margin: const EdgeInsets.only(top: 25),
-                                child: ProductsWidget(
-                                    category: product!.category ?? "",
-                                    price: product.price ?? "",
-                                    url: product.image ?? "",
-                                    title: product.title ?? ""),
+                                child: InkWell(
+                                  onTap: () {
+                                    print("pressed");
+                                    makePayment(product.price ?? "");
+                                  },
+                                  child: ProductsWidget(
+                                      category: product!.category ?? "",
+                                      price: product.price ?? "",
+                                      url: product.image ?? "",
+                                      title: product.title ?? ""),
+                                ),
                               )
                             : product == null
                                 ? InkWell(
                                     onTap: () async {
+                                      print("pressed");
+                                      // makePayment(product?.price ?? "");
                                       await screenNotifierProvider
                                           .pickImage(context);
                                     },

@@ -52,6 +52,8 @@ dependencies:
   webview_flutter_android: ^3.9.2
   url_launcher: ^6.2.2
   # webview_flutter_wkwebview: ^3.9.4
+  flutter_stripe: ^9.3.0
+  flutter_dotenv: ^5.1.0
   
   
 
@@ -81,6 +83,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/logos/
+    - assets/.env
     
 
   # An image asset can refer to one or more resolution-specific "variants", see
