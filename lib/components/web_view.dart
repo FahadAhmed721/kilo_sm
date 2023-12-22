@@ -54,11 +54,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 //   }
 // }
 class WebView extends StatefulWidget {
-  WebView({super.key, required this.url, this.appBarTitle});
+  WebView({super.key, required this.url, this.appBarTitle, this.title});
 
   static const String routeName = "/web_view";
   String url;
   String? appBarTitle;
+  String? title;
 
   // static pushWebPage({String? title, String? url}) {
   //   push(RoutePath.webPage, extra: {"title": title, "url": url});
@@ -92,6 +93,7 @@ class _WebPageState extends State<WebView> {
     return CustomWebViewScreen(
       url: widget.url,
       appBar: false,
+      title: widget.title,
       appBarTitle: widget.appBarTitle,
       onProgress: (pro) {
         // setState(() {

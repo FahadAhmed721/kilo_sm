@@ -11,6 +11,7 @@ import 'package:kiloi_sm/providers/products_provider.dart';
 import 'package:kiloi_sm/repos/medias/media.dart';
 import 'package:kiloi_sm/repos/products/comments.dart';
 import 'package:kiloi_sm/repos/products/product_repo.dart';
+import 'package:kiloi_sm/screens/home/medias_tab/images_tab/full_image_screen.dart';
 import 'package:kiloi_sm/utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -45,6 +46,7 @@ class CommentsScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             ProductsWidget(
+                              onTap: () => screenProvider.onImageTap(context),
                               category: "",
                               price: "",
                               title: mediaContent.title!,
@@ -263,6 +265,11 @@ class _ScreenNotifier extends ChangeNotifier {
       // }
       notifyListeners();
     });
+  }
+
+  void onImageTap(context) {
+    Navigator.pushNamed(context, FullImageView.routeName,
+        arguments: {"url": mediaContent.image});
   }
 
   uploadComment(AuthProvider authNotifier, context) async {

@@ -151,12 +151,14 @@ class ProductsWidget extends StatelessWidget {
   String title;
   String price;
   String category;
+  GestureTapCallback onTap;
   final bool shouldShowPC;
   ProductsWidget(
       {required this.category,
       required this.price,
       required this.title,
       required this.url,
+      required this.onTap,
       this.shouldShowPC = true,
       super.key});
 
@@ -178,31 +180,34 @@ class ProductsWidget extends StatelessWidget {
           const SizedBox(
             height: 5,
           ),
-        SizedBox(
-          height: 150,
-          child: CachedNetworkImage(
-            imageUrl: url, // Replace with your image URL
-            imageBuilder: (context, imageProvider) {
-              return Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: imageProvider,
-                      fit: BoxFit.cover,
-                    )),
-              );
-            },
-            placeholder: (context, url) => const Center(
-              child: Icon(
-                Icons.image,
-                color: Colors.white,
-              ),
-              //  SizedBox(
-              //     height: 10, width: 10, child: CircularProgressIndicator()),
-            ), // Placeholder widget while loading
-            errorWidget: (context, url, error) => const Icon(
-                Icons.error), // Widget to display when there's an error
-            fit: BoxFit.cover, // Adjust the fit as needed
+        GestureDetector(
+          onTap: () => onTap(),
+          child: SizedBox(
+            height: 150,
+            child: CachedNetworkImage(
+              imageUrl: url, // Replace with your image URL
+              imageBuilder: (context, imageProvider) {
+                return Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      )),
+                );
+              },
+              placeholder: (context, url) => const Center(
+                child: Icon(
+                  Icons.image,
+                  color: Colors.white,
+                ),
+                //  SizedBox(
+                //     height: 10, width: 10, child: CircularProgressIndicator()),
+              ), // Placeholder widget while loading
+              errorWidget: (context, url, error) => const Icon(
+                  Icons.error), // Widget to display when there's an error
+              fit: BoxFit.cover, // Adjust the fit as needed
+            ),
           ),
         ),
         const SizedBox(

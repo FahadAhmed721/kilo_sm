@@ -68,8 +68,8 @@ class _DocumentsTabState extends State<DocumentsTab> {
                   return !authProvider.getUserContent.isAdmin!
                       ? UserDocumentsTabCell(
                           documentsList: mediasProvider.documentsList,
-                          onDocumentTap: (url) =>
-                              screenNotifier.onClick(context, url),
+                          onDocumentTap: (url, title) =>
+                              screenNotifier.onClick(context, url, title),
                           scrollController:
                               screenNotifier.messageScrollController,
                         )
@@ -100,8 +100,10 @@ class _DocumentsTabState extends State<DocumentsTab> {
                                 : GestureDetector(
                                     onTap: () => screenNotifier.onClick(
                                         context,
-                                        mediaNotifier.documentsList[index - 1]
-                                            .document!),
+                                        mediaNotifier
+                                            .documentsList[index - 1].document!,
+                                        mediaNotifier
+                                            .documentsList[index - 1].title!),
                                     child: Container(
                                       decoration: BoxDecoration(
                                           color: AppColors.uploadButtonColor,
@@ -167,10 +169,11 @@ class _ScreenNotifier extends ChangeNotifier {
     }
   }
 
-  void onClick(context, String url) {
+  void onClick(context, String url, String title) {
     Navigator.pushNamed(context, WebView.routeName, arguments: {
       "url": "https://docs.google.com/gview?embedded=true&url=$url",
-      "appbarTitle": "Document"
+      "appbarTitle": "Document",
+      "title": title
     });
   }
 

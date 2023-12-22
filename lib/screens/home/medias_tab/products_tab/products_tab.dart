@@ -61,14 +61,14 @@ class _ProductTabState extends State<ProductTab> {
   }
 
   Future<void> makePayment(amountToPay) async {
-    print("make payment called");
+    kPrint("make payment called");
     try {
       //STEP 1: Create Payment Intent
-      print("Creating PaymentIntent");
+      kPrint("Creating PaymentIntent");
       paymentIntent = await createPaymentIntent(amountToPay, 'USD');
 
       //STEP 2: Initialize Payment Sheet
-      print("initializing Intent");
+      kPrint("initializing Intent");
       await Stripe.instance
           .initPaymentSheet(
               paymentSheetParameters: SetupPaymentSheetParameters(
@@ -84,20 +84,22 @@ class _ProductTabState extends State<ProductTab> {
       throw Exception(err);
     }
   }
+
   calculateAmount(String amount) {
     final a = (int.parse(amount)) * 100;
     return a.toString();
   }
+
   displayPaymentSheet() async {
-    print("displaying patment sheet");
+    kPrint("displaying patment sheet");
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
         showDialog(
             context: context,
-            builder: (_) => AlertDialog(
+            builder: (_) => const AlertDialog(
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.check_circle,
                         color: Colors.green,
@@ -114,13 +116,13 @@ class _ProductTabState extends State<ProductTab> {
         throw Exception(error);
       });
     } on StripeException catch (e) {
-      print('Error is:---> $e');
-      AlertDialog(
+      kPrint('Error is:---> $e');
+      const AlertDialog(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
-              children: const [
+              children: [
                 Icon(
                   Icons.cancel,
                   color: Colors.red,
@@ -132,7 +134,7 @@ class _ProductTabState extends State<ProductTab> {
         ),
       );
     } catch (e) {
-      print('$e');
+      kPrint('$e');
     }
   }
 
@@ -190,23 +192,21 @@ class _ProductTabState extends State<ProductTab> {
                         return !authNotifier.getUserContent.isAdmin!
                             ? Container(
                                 margin: const EdgeInsets.only(top: 25),
-                                child: InkWell(
-                                  onTap: () {
-                                    print("pressed");
-                                    print(product.price);
-                                    makePayment(product.price ?? "");
-                                  },
-                                  child: ProductsWidget(
-                                      category: product!.category ?? "",
-                                      price: product.price ?? "",
-                                      url: product.image ?? "",
-                                      title: product.title ?? ""),
-                                ),
+                                child: ProductsWidget(
+                                    category: product!.category ?? "",
+                                    price: product.price ?? "",
+                                    url: product.image ?? "",
+                                    onTap: () {
+                                      kPrint("pressed");
+                                      kPrint(product.price ?? "");
+                                      makePayment(product.price ?? "");
+                                    },
+                                    title: product.title ?? ""),
                               )
                             : product == null
                                 ? InkWell(
                                     onTap: () async {
-                                      print("pressed1");
+                                      kPrint("pressed1");
                                       // makePayment(product?.price ?? "");
                                       await screenNotifierProvider
                                           .pickImage(context);
@@ -215,6 +215,7 @@ class _ProductTabState extends State<ProductTab> {
                                 : Container(
                                     margin: const EdgeInsets.only(top: 25),
                                     child: ProductsWidget(
+                                        onTap: () {},
                                         category: product.category ?? "",
                                         price: product.price ?? "",
                                         url: product.image ?? "",
@@ -283,7 +284,7 @@ class _ScreenNotifier extends ChangeNotifier {
   @override
   void dispose() {
     messageScrollController.dispose();
-    // TODO: implement dispose
+
     super.dispose();
   }
 

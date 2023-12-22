@@ -6,6 +6,7 @@ import 'package:kiloi_sm/screens/auth/signup_screen.dart';
 import 'package:kiloi_sm/screens/auth/splash_screen.dart';
 import 'package:kiloi_sm/screens/home/home.dart';
 import 'package:kiloi_sm/screens/home/medias_tab/comments_screen.dart';
+import 'package:kiloi_sm/screens/home/medias_tab/images_tab/full_image_screen.dart';
 import 'package:kiloi_sm/screens/home/medias_tab/upload_media_screen.dart';
 
 class RouteGenerator {
@@ -28,6 +29,11 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => const HomeScreen(),
         );
+      case FullImageView.routeName:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => FullImageView(url: args!["url"]),
+        );
       case CommentsScreen.routeName:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -40,6 +46,7 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => WebView(
             url: args?['url'],
+            title: args?['title'],
             appBarTitle: args?['appbarTitle'],
           ),
         );

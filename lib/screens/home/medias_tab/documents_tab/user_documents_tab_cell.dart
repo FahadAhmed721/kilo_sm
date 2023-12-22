@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 class UserDocumentsTabCell extends StatelessWidget {
   ScrollController scrollController;
   List<MediaContent> documentsList;
-  final Function(String url) onDocumentTap;
+  final Function(String url, String title) onDocumentTap;
 
   UserDocumentsTabCell(
       {required this.onDocumentTap,
@@ -29,7 +29,8 @@ class UserDocumentsTabCell extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           return InkWell(
-            onTap: () => onDocumentTap(documentsList[index].document!),
+            onTap: () => onDocumentTap(
+                documentsList[index].document!, documentsList[index].title!),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

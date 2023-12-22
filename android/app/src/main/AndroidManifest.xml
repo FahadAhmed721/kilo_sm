@@ -31,7 +31,7 @@
        </intent>
     </queries>
     <application
-        android:label="kiloi_sm"
+        android:label="KiloiSm"
         android:name="${applicationName}"
         android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"

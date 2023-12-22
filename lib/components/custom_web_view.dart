@@ -21,6 +21,7 @@ class CustomWebViewScreen extends StatefulWidget {
       this.onPageFinished,
       this.onPageStarted,
       this.onProgress,
+      this.title,
       this.onWebResourceError,
       required this.url,
       this.appBar = true,
@@ -29,6 +30,7 @@ class CustomWebViewScreen extends StatefulWidget {
 
   String? url;
   String? appBarTitle;
+  String? title;
   final bool appBar;
   void Function(WebResourceError)? onWebResourceError;
   FutureOr<NavigationDecision> Function(NavigationRequest)? onNavigationRequest;
@@ -152,8 +154,25 @@ Page resource error:
               centerTitle: true,
               title: Text(widget.appBarTitle ?? ''),
             ),
-      body: WebViewWidget(
-        controller: _controller,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.title ?? "",
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall!
+                  .copyWith(fontSize: 14, fontWeight: FontWeight.normal),
+            ),
+          ),
+          Expanded(
+            child: WebViewWidget(
+              controller: _controller,
+            ),
+          ),
+        ],
       ),
       //floatingActionButton: favoriteButton(),
     );
