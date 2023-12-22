@@ -60,7 +60,7 @@ class _ProductTabState extends State<ProductTab> {
     super.dispose();
   }
 
-  Future<void> makePayment(String amountToPay) async {
+  Future<void> makePayment(amountToPay) async {
     print("make payment called");
     try {
       //STEP 1: Create Payment Intent
@@ -84,7 +84,10 @@ class _ProductTabState extends State<ProductTab> {
       throw Exception(err);
     }
   }
-
+  calculateAmount(String amount) {
+    final a = (int.parse(amount)) * 100;
+    return a.toString();
+  }
   displayPaymentSheet() async {
     print("displaying patment sheet");
     try {
@@ -137,7 +140,7 @@ class _ProductTabState extends State<ProductTab> {
     try {
       //Request body
       Map<String, dynamic> body = {
-        'amount': (amount),
+        'amount': calculateAmount(amount),
         'currency': currency,
       };
 
@@ -190,6 +193,7 @@ class _ProductTabState extends State<ProductTab> {
                                 child: InkWell(
                                   onTap: () {
                                     print("pressed");
+                                    print(product.price);
                                     makePayment(product.price ?? "");
                                   },
                                   child: ProductsWidget(
@@ -202,7 +206,7 @@ class _ProductTabState extends State<ProductTab> {
                             : product == null
                                 ? InkWell(
                                     onTap: () async {
-                                      print("pressed");
+                                      print("pressed1");
                                       // makePayment(product?.price ?? "");
                                       await screenNotifierProvider
                                           .pickImage(context);
