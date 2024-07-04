@@ -1,7 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:kiloi_sm/repos/medias/media.dart';
+import 'package:kiloi_sm/repos/products/products.dart';
+import 'package:kiloi_sm/screens/home/medias_tab/products_tab/products_tab.dart';
 import 'package:kiloi_sm/utils/app_assets.dart';
 import 'package:kiloi_sm/utils/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class AuthScreensHeader extends StatelessWidget {
   const AuthScreensHeader({super.key});
@@ -244,5 +248,100 @@ class ProductsWidget extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class CustomSearchedTab extends StatelessWidget {
+  List<MediaContent> filteredList;
+  IconData icon;
+
+  CustomSearchedTab({
+    super.key,
+    required this.filteredList,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return filteredList.isEmpty
+        ? Center(
+            child: Text(
+              "No Data",
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          )
+        : ListView.builder(
+            itemCount: filteredList.length,
+            itemBuilder: (context, index) {
+              MediaContent media = filteredList[index];
+              return Padding(
+                padding: const EdgeInsets.all(15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 60,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                          color: AppColors.uploadButtonColor,
+                          borderRadius: BorderRadius.circular(10)),
+                      child: Center(
+                        child: Icon(
+                          icon,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      media.title ?? "",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    )
+                  ],
+                ),
+              );
+            });
+  }
+}
+
+class CustomProductSearchedTab extends StatelessWidget {
+  List<Product> filteredList;
+
+  CustomProductSearchedTab({
+    super.key,
+    required this.filteredList,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return filteredList.isEmpty
+        ? Center(
+            child: Text(
+              "No Data",
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          )
+        : ChangeNotifierProvider(
+            create: (context) => ProductScreenNotifier(context),
+            builder: (context, _) {
+              var screenNotifierProvider =
+                  Provider.of<ProductScreenNotifier>(context, listen: false);
+              return ListView.builder(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 38, horizontal: 37),
+                  itemCount: filteredList.length,
+                  itemBuilder: (context, index) {
+                    Product product = filteredList[index];
+                    return ProductsWidget(
+                      category: product.category!,
+                      onTap: () {
+                        screenNotifierProvider.makePayment(
+                            product.price ?? "", context);
+                      },
+                      price: product.price!,
+                      title: product.title!,
+                      url: product.image!,
+                    );
+                  });
+            });
   }
 }

@@ -60,7 +60,204 @@ class _ProductTabState extends State<ProductTab> {
     super.dispose();
   }
 
-  Future<void> makePayment(amountToPay) async {
+  // Future<void> makePayment(amountToPay) async {
+  //   kPrint("make payment called");
+  //   try {
+  //     //STEP 1: Create Payment Intent
+  //     kPrint("Creating PaymentIntent");
+  //     paymentIntent = await createPaymentIntent(amountToPay, 'USD');
+
+  //     //STEP 2: Initialize Payment Sheet
+  //     kPrint("initializing Intent");
+  //     await Stripe.instance
+  //         .initPaymentSheet(
+  //             paymentSheetParameters: SetupPaymentSheetParameters(
+  //                 paymentIntentClientSecret: paymentIntent![
+  //                     'client_secret'], //Gotten from payment intent
+  //                 style: ThemeMode.light,
+  //                 merchantDisplayName: 'Ikay'))
+  //         .then((value) {});
+
+  //     //STEP 3: Display Payment sheet
+  //     displayPaymentSheet();
+  //   } catch (err) {
+  //     throw Exception(err);
+  //   }
+  // }
+
+  // calculateAmount(String amount) {
+  //   final a = (int.parse(amount)) * 100;
+  //   return a.toString();
+  // }
+
+  // displayPaymentSheet() async {
+  //   kPrint("displaying patment sheet");
+  //   try {
+  //     await Stripe.instance.presentPaymentSheet().then((value) {
+  //       showDialog(
+  //           context: context,
+  //           builder: (_) => const AlertDialog(
+  //                 content: Column(
+  //                   mainAxisSize: MainAxisSize.min,
+  //                   children: [
+  //                     Icon(
+  //                       Icons.check_circle,
+  //                       color: Colors.green,
+  //                       size: 100.0,
+  //                     ),
+  //                     SizedBox(height: 10.0),
+  //                     Text("Payment Successful!"),
+  //                   ],
+  //                 ),
+  //               ));
+
+  //       paymentIntent = null;
+  //     }).onError((error, stackTrace) {
+  //       throw Exception(error);
+  //     });
+  //   } on StripeException catch (e) {
+  //     kPrint('Error is:---> $e');
+  //     const AlertDialog(
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Row(
+  //             children: [
+  //               Icon(
+  //                 Icons.cancel,
+  //                 color: Colors.red,
+  //               ),
+  //               Text("Payment Failed"),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     kPrint('$e');
+  //   }
+  // }
+
+  // createPaymentIntent(String amount, String currency) async {
+  //   try {
+  //     //Request body
+  //     Map<String, dynamic> body = {
+  //       'amount': calculateAmount(amount),
+  //       'currency': currency,
+  //     };
+
+  //     //Make post request to Stripe
+  //     var response = await http.post(
+  //       Uri.parse('https://api.stripe.com/v1/payment_intents'),
+  //       headers: {
+  //         'Authorization': 'Bearer ${dotenv.env['STRIPE_SECRET']}',
+  //         'Content-Type': 'application/x-www-form-urlencoded'
+  //       },
+  //       body: body,
+  //     );
+  //     return json.decode(response.body);
+  //   } catch (err) {
+  //     throw Exception(err.toString());
+  //   }
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+        create: (context) => ProductScreenNotifier(context),
+        builder: (context, _) {
+          var screenNotifierProvider =
+              Provider.of<ProductScreenNotifier>(context, listen: false);
+          return StreamBuilder<Object>(
+              stream: stream, //fetchMediaImage(context),
+              builder: (context, snapshot) {
+                return Consumer2<ProductsProvider, AuthProvider>(
+                    builder: (context, productNotifier, authNotifier, _) {
+                  // kPrint("isAdmin ${authNotifier.getUserContent.isAdmin}");
+                  return ListView.builder(
+                      controller:
+                          screenNotifierProvider.messageScrollController,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 38, horizontal: 37),
+                      itemCount: !authNotifier.getUserContent.isAdmin!
+                          ? productNotifier.productsList.length
+                          : 1 + productNotifier.productsList.length,
+                      itemBuilder: (context, index) {
+                        Product? product =
+                            screenNotifierProvider.getIndexedProduct(
+                                authNotifier.getUserContent.isAdmin!,
+                                index,
+                                productNotifier.productsList);
+                        toPayPrice = product?.price ?? " ";
+                        return !authNotifier.getUserContent.isAdmin!
+                            ? Container(
+                                margin: const EdgeInsets.only(top: 25),
+                                child: ProductsWidget(
+                                    category: product!.category ?? "",
+                                    price: product.price ?? "",
+                                    url: product.image ?? "",
+                                    onTap: () {
+                                      kPrint("pressed");
+                                      kPrint(product.price ?? "");
+                                      // makePayment(product.price ?? "");
+                                      screenNotifierProvider.makePayment(
+                                          product.price ?? "", context);
+                                    },
+                                    title: product.title ?? ""),
+                              )
+                            : product == null
+                                ? InkWell(
+                                    onTap: () async {
+                                      kPrint("pressed1");
+                                      // makePayment(product?.price ?? "");
+                                      await screenNotifierProvider
+                                          .pickImage(context);
+                                    },
+                                    child: const UploadButton())
+                                : Container(
+                                    margin: const EdgeInsets.only(top: 25),
+                                    child: ProductsWidget(
+                                        onTap: () {},
+                                        category: product.category ?? "",
+                                        price: product.price ?? "",
+                                        url: product.image ?? "",
+                                        title: product.title ?? ""),
+                                  );
+                      });
+                });
+              });
+        });
+  }
+}
+
+class ProductScreenNotifier extends ChangeNotifier {
+  final picker = ImagePicker();
+  ProductRepo productRepo = ProductRepo.instance();
+  final uniqueId = const Uuid().v4();
+  bool loadMore = false;
+  late ProductsProvider productsProvider;
+  late AuthProvider authProvider;
+  Map<String, dynamic>? paymentIntent;
+  ScrollController messageScrollController = ScrollController();
+  ProductScreenNotifier(context, {bool shouldAddScrollExcent = true}) {
+    productsProvider = Provider.of<ProductsProvider>(context, listen: false);
+    authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+    if (shouldAddScrollExcent) {
+      messageScrollController.addListener(() {
+        if (messageScrollController.offset + 20 >=
+            messageScrollController.position.maxScrollExtent) {
+          kPrint("hello");
+          asyncLoadMoreData(authProvider.userToken,
+              productsProvider.productsList.last.addtime!);
+        }
+      });
+    }
+
+    // });
+  }
+
+  Future<void> makePayment(amountToPay, context) async {
     kPrint("make payment called");
     try {
       //STEP 1: Create Payment Intent
@@ -79,7 +276,7 @@ class _ProductTabState extends State<ProductTab> {
           .then((value) {});
 
       //STEP 3: Display Payment sheet
-      displayPaymentSheet();
+      displayPaymentSheet(context);
     } catch (err) {
       throw Exception(err);
     }
@@ -90,7 +287,7 @@ class _ProductTabState extends State<ProductTab> {
     return a.toString();
   }
 
-  displayPaymentSheet() async {
+  displayPaymentSheet(context) async {
     kPrint("displaying patment sheet");
     try {
       await Stripe.instance.presentPaymentSheet().then((value) {
@@ -159,96 +356,6 @@ class _ProductTabState extends State<ProductTab> {
     } catch (err) {
       throw Exception(err.toString());
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-        create: (context) => _ScreenNotifier(context),
-        builder: (context, _) {
-          var screenNotifierProvider =
-              Provider.of<_ScreenNotifier>(context, listen: false);
-          return StreamBuilder<Object>(
-              stream: stream, //fetchMediaImage(context),
-              builder: (context, snapshot) {
-                return Consumer2<ProductsProvider, AuthProvider>(
-                    builder: (context, productNotifier, authNotifier, _) {
-                  // kPrint("isAdmin ${authNotifier.getUserContent.isAdmin}");
-                  return ListView.builder(
-                      controller:
-                          screenNotifierProvider.messageScrollController,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 38, horizontal: 37),
-                      itemCount: !authNotifier.getUserContent.isAdmin!
-                          ? productNotifier.productsList.length
-                          : 1 + productNotifier.productsList.length,
-                      itemBuilder: (context, index) {
-                        Product? product =
-                            screenNotifierProvider.getIndexedProduct(
-                                authNotifier.getUserContent.isAdmin!,
-                                index,
-                                productNotifier.productsList);
-                        toPayPrice = product?.price ?? " ";
-                        return !authNotifier.getUserContent.isAdmin!
-                            ? Container(
-                                margin: const EdgeInsets.only(top: 25),
-                                child: ProductsWidget(
-                                    category: product!.category ?? "",
-                                    price: product.price ?? "",
-                                    url: product.image ?? "",
-                                    onTap: () {
-                                      kPrint("pressed");
-                                      kPrint(product.price ?? "");
-                                      makePayment(product.price ?? "");
-                                    },
-                                    title: product.title ?? ""),
-                              )
-                            : product == null
-                                ? InkWell(
-                                    onTap: () async {
-                                      kPrint("pressed1");
-                                      // makePayment(product?.price ?? "");
-                                      await screenNotifierProvider
-                                          .pickImage(context);
-                                    },
-                                    child: const UploadButton())
-                                : Container(
-                                    margin: const EdgeInsets.only(top: 25),
-                                    child: ProductsWidget(
-                                        onTap: () {},
-                                        category: product.category ?? "",
-                                        price: product.price ?? "",
-                                        url: product.image ?? "",
-                                        title: product.title ?? ""),
-                                  );
-                      });
-                });
-              });
-        });
-  }
-}
-
-class _ScreenNotifier extends ChangeNotifier {
-  final picker = ImagePicker();
-  ProductRepo productRepo = ProductRepo.instance();
-  final uniqueId = const Uuid().v4();
-  bool loadMore = false;
-  late ProductsProvider productsProvider;
-  late AuthProvider authProvider;
-  ScrollController messageScrollController = ScrollController();
-  _ScreenNotifier(context) {
-    productsProvider = Provider.of<ProductsProvider>(context, listen: false);
-    authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-    messageScrollController.addListener(() {
-      if (messageScrollController.offset + 20 >=
-          messageScrollController.position.maxScrollExtent) {
-        kPrint("hello");
-        asyncLoadMoreData(authProvider.userToken,
-            productsProvider.productsList.last.addtime!);
-      }
-    });
-    // });
   }
 
   Future<void> pickImage(context) async {

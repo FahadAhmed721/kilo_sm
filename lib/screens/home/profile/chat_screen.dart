@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:kiloi_sm/providers/auth_provider.dart';
 import 'package:kiloi_sm/providers/chat_provider.dart';
@@ -17,6 +20,8 @@ class _ChatScreenState extends State<ChatScreen> {
   late ChatProvider chatProvider;
   late AuthProvider authProvider;
   ScrollController messageScrollController = ScrollController();
+  final ImagePicker imagePicker = ImagePicker();
+  File? _photo;
 
   @override
   void initState() {
@@ -43,8 +48,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     messageScrollController.dispose();
-
     super.dispose();
+  }
+
+  Future onPickImage() async {
+    final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      _photo = File(pickedFile.path);
+      await chatProvider.sendImage();
+    } else {}
   }
 
   @override
@@ -62,75 +74,91 @@ class _ChatScreenState extends State<ChatScreen> {
             left: 20,
             right: 20,
             // top: 0,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
 
-              // padding: const EdgeInsets.only(bottom: 10, top: 10),
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  // color: AppColors.fieldBorderColor,
-                  border: Border.all(color: Colors.grey)),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: chatProvider.chatMessageController,
-                      keyboardType: TextInputType.multiline,
-                      autofocus: false,
-                      focusNode: chatProvider.messageFocusNode,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14),
+                    // padding: const EdgeInsets.only(bottom: 10, top: 10),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        // color: AppColors.fieldBorderColor,
+                        border: Border.all(color: Colors.grey)),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: chatProvider.chatMessageController,
+                            keyboardType: TextInputType.multiline,
+                            autofocus: false,
+                            focusNode: chatProvider.messageFocusNode,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14),
 
-                      // onTapOutside: (event) {
+                            // onTapOutside: (event) {
 
-                      //   FocusManager
-                      //     .instance.primaryFocus
-                      //     ?.unfocus();},
-                      decoration: const InputDecoration(
-                          hintText: "Type your message here",
-                          hintStyle: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.normal,
-                              fontSize: 14),
-                          contentPadding:
-                              EdgeInsets.only(left: 15, top: 0, bottom: 0),
-                          border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.transparent)),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.transparent)),
-                          disabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.transparent)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.transparent))),
+                            //   FocusManager
+                            //     .instance.primaryFocus
+                            //     ?.unfocus();},
+                            decoration: const InputDecoration(
+                                hintText: "Type your message here",
+                                hintStyle: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 14),
+                                contentPadding: EdgeInsets.only(
+                                    left: 15, top: 0, bottom: 0),
+                                border: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent)),
+                                disabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent))),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            chatProvider.sendMessage(authProvider.userToken,
+                                authProvider.getUserContent.name!);
+                          },
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                                color: AppColors.appThemeColor,
+                                borderRadius: BorderRadius.circular(5)),
+                            child: const Icon(
+                              Icons.send_rounded,
+                              size: 26,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      chatProvider.sendMessage(authProvider.userToken,
-                          authProvider.getUserContent.name!);
-                    },
-                    child: Container(
-                      height: 40,
-                      width: 40,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                          color: AppColors.appThemeColor,
-                          borderRadius: BorderRadius.circular(5)),
-                      child: const Icon(
-                        Icons.send_rounded,
-                        size: 26,
-                      ),
-                    ),
-                  )
-                ],
-              ),
+                ),
+                const SizedBox(
+                  width: 20,
+                ),
+                const CircleAvatar(
+                  backgroundColor: AppColors.appThemeColor,
+                  radius: 20,
+                  child: Center(
+                    child: Icon(Icons.add),
+                  ),
+                )
+              ],
             ),
           )
         ],

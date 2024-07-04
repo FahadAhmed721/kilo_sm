@@ -230,6 +230,16 @@ class MediasProvider extends ChangeNotifier {
     }
   }
 
+  List<MediaContent> onSearch(String query, List<MediaContent> mediaList) {
+    String trimmedQuery = query.trim().toLowerCase();
+
+    // Return a list of MediaContent where the title contains the query
+    return mediaList.where((element) {
+      // Check if the title is not null and contains the query
+      return element.title?.toLowerCase().contains(trimmedQuery) ?? false;
+    }).toList();
+  }
+
   void disposeMediaStream() {
     kPrint("dispose");
     mediaStreamSubscription.cancel();

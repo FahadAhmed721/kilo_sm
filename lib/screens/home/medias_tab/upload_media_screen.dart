@@ -12,6 +12,7 @@ import 'package:kiloi_sm/repos/medias/media_repo.dart';
 import 'package:kiloi_sm/repos/products/product_repo.dart';
 import 'package:kiloi_sm/repos/products/products.dart';
 import 'package:kiloi_sm/utils/app_colors.dart';
+import 'package:kiloi_sm/utils/firebase_messaging_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -78,7 +79,7 @@ class UploadMediaScreen extends StatelessWidget {
                                                       screenNotifier.titleNode,
                                                   onSaved: () {},
                                                   validator: screenNotifier
-                                                      .emailValidator)),
+                                                      .linkValidator)),
                                         )
                                       : productWidgets(screenNotifier),
                           CustomTextField(
@@ -307,6 +308,12 @@ class _ScreenNotifier extends ChangeNotifier {
         await productRepo.postProduct(product: product);
         EasyLoading.dismiss();
         kPrint("file data is $mediaUrl");
+        FirebaseMessagingHandler.sendTopicMessage(
+          "/topics/notifications",
+          product.toDataNotification(false),
+          product.toDataNotification(true,
+              currentUser: authNotifier.getUserContent.name!),
+        );
       }
       Navigator.of(context).pop();
     } catch (error) {
@@ -346,12 +353,27 @@ class _ScreenNotifier extends ChangeNotifier {
     }
   }
 
-  String? emailValidator(String? text) {
+  // String? linkValidator(String? text) {
+  //   if (text == null || text.isEmpty) {
+  //     return "Please enter a URL";
+  //   }
+  //   final regex = RegExp(
+  //       r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$');
+  //   if (!regex.hasMatch(text)) {
+  //     return "Please enter a valid URL";
+  //   }
+  //   return null;
+  // }
+
+  String? linkValidator(String? text) {
     if (text == null || text.isEmpty) {
       return "Please enter a URL";
     }
     final regex = RegExp(
-        r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$');
+      r'^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$',
+      caseSensitive: false,
+      multiLine: false,
+    );
     if (!regex.hasMatch(text)) {
       return "Please enter a valid URL";
     }

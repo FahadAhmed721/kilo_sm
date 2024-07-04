@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kiloi_sm/utils/enums.dart';
 
 class Product {
   String? id;
@@ -39,5 +40,24 @@ class Product {
       if (title != null) "title": title,
       if (addtime != null) "addtime": addtime,
     };
+  }
+
+  Map<String, dynamic> toDataNotification(bool isNotification,
+      {String currentUser = ""}) {
+    return isNotification
+        ? {
+            if (id != null) "id": id,
+            if (category != null) "category": category,
+            if (image != null) "image": image,
+            if (price != null) "price": price,
+            if (title != null) "title": title,
+            if (addtime != null) "addtime": Timestamp.now().toString(),
+            "type": NotificationType.PRODUCT_NAME
+          }
+        : {
+            'title': 'New Product $title',
+            'body': 'Product has been uploaded by $currentUser',
+            if (image != null) "image": image,
+          };
   }
 }

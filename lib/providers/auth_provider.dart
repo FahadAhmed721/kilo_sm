@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kiloi_sm/main.dart';
 import 'package:kiloi_sm/repos/user/user.dart';
@@ -44,6 +45,9 @@ class AuthProvider extends ChangeNotifier {
             email: email, name: name, token: _accessToken, isAdmin: isAdmin);
         await userRepo.posetUser(userContent: userContent);
         await UserStorage.instance().saveProfile(userContent);
+        if (!isAdmin) {
+          FirebaseMessaging.instance.subscribeToTopic('notifications');
+        }
         // kPrint("user is ${getUserContent.email}");
       });
       notifyListeners();
@@ -66,15 +70,19 @@ class AuthProvider extends ChangeNotifier {
           .then((userCredential) async {
         // _accessToken = userCredential.user!.uid;
         await saveLocalData(userCredential.user!.uid, isAdmin);
+        if (!isAdmin) {
+          FirebaseMessaging.instance.subscribeToTopic('notifications');
+        }
       });
       notifyListeners();
 
       return _accessToken != null;
     } on FirebaseAuthException catch (error) {
       kPrint(error.message ?? "");
+      return _accessToken == null;
     }
 
-    return _accessToken != null;
+    // return _accessToken != null;
   }
 
   saveLocalData(String userId, bool isAdmin) async {
@@ -120,6 +128,7 @@ class AuthProvider extends ChangeNotifier {
     await UserStorage.instance().clearData();
     _accessToken = null;
     await FirebaseAuth.instance.signOut();
+    FirebaseMessaging.instance.unsubscribeFromTopic("notifications");
     notifyListeners();
     kPrint("after logout $userToken");
     // notifyListeners();

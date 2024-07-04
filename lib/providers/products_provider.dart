@@ -112,6 +112,16 @@ class ProductsProvider extends ChangeNotifier {
     });
   }
 
+  List<Product> onSearch(String query, List<Product> mediaList) {
+    String trimmedQuery = query.trim().toLowerCase();
+
+    // Return a list of MediaContent where the title contains the query
+    return mediaList.where((element) {
+      // Check if the title is not null and contains the query
+      return element.title?.toLowerCase().contains(trimmedQuery) ?? false;
+    }).toList();
+  }
+
   @override
   void dispose() {
     productsList.clear();

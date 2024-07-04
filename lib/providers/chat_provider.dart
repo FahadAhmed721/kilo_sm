@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:kiloi_sm/main.dart';
 import 'package:kiloi_sm/repos/messages/message_repo.dart';
 import 'package:kiloi_sm/repos/messages/msg_content.dart';
+import 'package:kiloi_sm/repos/user/user.dart';
+import 'package:kiloi_sm/store/user_storage.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatProvider extends ChangeNotifier {
@@ -15,6 +17,7 @@ class ChatProvider extends ChangeNotifier {
   var chatMessageController = TextEditingController();
   var messageFocusNode = FocusNode();
   MessageRepo messageRepo = MessageRepo.instance();
+  UserContent currentUser = UserStorage.instance().getUserContent;
 
   loadMessages() {
     messagesList.clear();
@@ -40,10 +43,8 @@ class ChatProvider extends ChangeNotifier {
 
             break;
           case DocumentChangeType.modified:
-            // TODO: Handle If you updated any doc in firebase.
             break;
           case DocumentChangeType.removed:
-            // TODO: Handle If you deleted any doc in firebase.
             break;
         }
       }
@@ -87,7 +88,27 @@ class ChatProvider extends ChangeNotifier {
         .add(msgcontent)
         .then((DocumentReference doc) {
       chatMessageController.clear();
-      print("new message doc is ....${doc.id} ");
+      kPrint("new message doc is ....${doc.id} ");
+    });
+  }
+
+  Future sendImage() async {
+    String uid = const Uuid().v4();
+    Msgcontent msgcontent = Msgcontent(
+        token: currentUser.token,
+        content: "", // here will set image url after uploading
+        type: MessageSecondryType.IMAGE.name,
+        name: currentUser.name,
+        id: uid,
+        addtime: Timestamp.now());
+    await db
+        .collection("message")
+        .withConverter(
+            fromFirestore: Msgcontent.fromFirestore,
+            toFirestore: (msgData, option) => msgData.toFirestore())
+        .add(msgcontent)
+        .then((DocumentReference doc) {
+      kPrint("new message doc is ....${doc.id} ");
     });
   }
 
@@ -121,7 +142,7 @@ class ChatProvider extends ChangeNotifier {
     listener.cancel();
     chatMessageController.dispose();
     // messageScrollController.dispose();
-    // TODO: implement dispose
+
     super.dispose();
   }
 }

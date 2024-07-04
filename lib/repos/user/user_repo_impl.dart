@@ -13,7 +13,7 @@ class UserRepoImpl implements UserRepo {
         .collection(userTable)
         .withConverter(
             fromFirestore: UserContent.fromFirestore,
-            toFirestore: (msgData, option) => userContent.toFirestore())
+            toFirestore: (msgData, option) => msgData.toFirestore())
         .add(userContent)
         .then((value) {
       newDoc = value;

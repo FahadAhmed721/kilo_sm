@@ -24,6 +24,9 @@
     <string>to access photos</string>
 	<key>NSMicrophoneUsageDescription</key>
     <string>Microphone Usage</string>
+	<key>NSCameraUsageDescription
+	&lt;string&gt;To scan cards&lt;/string&gt;</key>
+    <string>To scan cards</string>
 	<key>NSAppleMusicUsageDescription</key>
     <string>Explain why your app uses music</string>
 	<key>CFBundleShortVersionString</key>
